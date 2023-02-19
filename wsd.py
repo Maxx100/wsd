@@ -1,6 +1,7 @@
 import os
 import subprocess
 import argparse
+from PIL import Image
 
 
 # Путь к нашему исполняемому файлу
@@ -34,7 +35,7 @@ parser.add_argument('-p', '--profile', type=str, default="all",
                     const=True, default=False,
                     help='skip pids and dumo extracting')"""
 
-
+"""
 # Проверка наличия и корректность всех необходимых аргументов
 args = parser.parse_args()
 if not args.file:
@@ -104,4 +105,25 @@ for i in output:
 
 pprint("Possible sizes:", "OKCYAN")
 for i in sorted(screen_size, reverse=True):
-    pprint(f"{screen_size[i][0]}bits {screen_size[i][1]}x{screen_size[i][2]}", "WARNING")
+    pprint(f"{screen_size[i][0]}bits {screen_size[i][1]}x{screen_size[i][2]}", "WARNING")"""
+
+pids = [1632]
+screen_size = {0: (32, 640, 480)}
+pprint("Loading...", "OKCYAN")
+for name in pids:
+    file = open(f"pid.{name}.dmp.data", "rb").read()
+    temp = [[]]
+    flag = 0
+    for i in file[85295108:85295108 + 640 * 480 * 4 + 1]:
+        if len(temp[-1]) == 4:
+            temp.append([])
+        temp[-1].append(i)
+
+    image = Image.new("RGB", (screen_size[max(screen_size)][1], screen_size[max(screen_size)][2]))
+
+    pixels = image.load()
+    for i in range(screen_size[max(screen_size)][1]):
+        for j in range(screen_size[max(screen_size)][2]):
+            pixels[i, j] = (temp[i + j * 640][2], temp[i + j * 640][1], temp[i + j * 640][0])
+
+    image.save(f"{name}.png", "PNG")
